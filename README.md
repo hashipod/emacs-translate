@@ -2,17 +2,30 @@
 
 Translate the current buffer via an LLM into a target language; the result is shown in a buffer named **\*Translation-\<current buffer name\>\*** (e.g. `*Translation-main.el*` or `*Translation-*scratch**`).
 
-Uses **[gptel](https://github.com/karthink/gptel)** for all LLM interaction: backends, API keys, and models are configured in gptel.
+Three backends, set by `emacs-translate-backend`:
+
+- `claude` (default): runs the Claude Code CLI (`claude -p`). It uses your Claude subscription. No API key.
+- `codex`: runs the Codex CLI (`codex exec`). It uses your ChatGPT subscription. No API key.
+- `gptel`: uses **[gptel](https://github.com/karthink/gptel)**. Backends, API keys, and models are configured in gptel.
 
 ## Features
 
 - **Interactive language choice**: After running the command, a target language list (completing-read) is shown with completion; first item is the default.
 - **Default English**: The first item in the list is "English"; press Enter to accept it.
-- **gptel integration**: Uses gptel’s backends (OpenAI, Anthropic, Ollama, etc.) and your existing gptel configuration.
+- **Subscription CLIs**: Uses the `claude` or `codex` CLI, so no API key is necessary.
+- **gptel integration**: Optional. Uses gptel’s backends (OpenAI, Anthropic, Ollama, etc.) and your existing gptel configuration.
 
 ## Install and configure
 
-1. Install **gptel** (e.g. `M-x package-install RET gptel RET`) and set up your backend and API key in gptel (see [gptel documentation](https://gptel.org)).
+1. Pick a backend:
+
+   ```elisp
+   (setq emacs-translate-backend 'claude)   ; or 'codex, or 'gptel
+   ```
+
+   For `claude` or `codex`, install the CLI and log in once. Make sure the CLI is on `exec-path`.
+   Change the command with `emacs-translate-claude-command` or `emacs-translate-codex-command`.
+   For `gptel`, install **gptel** and set up your backend and API key (see [gptel documentation](https://gptel.org)).
 
 2. Put `emacs-translate.el` on your load-path or add its directory:
 
@@ -21,11 +34,11 @@ Uses **[gptel](https://github.com/karthink/gptel)** for all LLM interaction: bac
    (load "emacs-translate")
    ```
 
-3. No extra API keys or URLs in this package: use gptel’s `gptel-backend`, `gptel-model`, `gptel-api-key`, etc.
+3. For `gptel`: no extra API keys or URLs in this package. Use gptel’s `gptel-backend`, `gptel-model`, `gptel-api-key`, etc.
 
 ### gptel setup (configure backend first)
 
-You must **register a backend in your init** (and optionally set it as the default) before `emacs-translate-buffer` and other gptel commands can send requests.
+Only for the `gptel` backend. You must **register a backend in your init** (and optionally set it as the default) before `emacs-translate-buffer` and other gptel commands can send requests.
 
 - **Register a backend**: use `gptel-make-anthropic`, `gptel-make-openai`, etc., to create a backend object.
 - **Set as default**: `(setq gptel-backend <that-object>)` so all gptel requests (including this package’s translation) use it.
@@ -67,7 +80,7 @@ Adjust `:endpoint` and `:models` to match your provider’s documentation.
 ## Dependencies
 
 - Emacs 27.1+
-- **gptel** (package dependency)
+- `claude` or `codex` CLI, or **gptel** (optional, only for the `gptel` backend)
 
 ## Customize language list
 
